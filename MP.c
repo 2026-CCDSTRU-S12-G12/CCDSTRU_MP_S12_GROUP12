@@ -156,16 +156,99 @@ Remove(Coord pos, int go, Set *R, Set *B, Set *S, Set *T)
     removeCoord(T, pos);
 }
 
-void Replace(Coord pos, int *go, Set *R, Set *B, Set *S, Set *T, Set *M){
+void Expand(Coord pos, int *go, int *found, Set *R, Set *B, Set *S, Set *T, Set *M);
+
+void Replace(Coord pos, int *go, int *found, Set *R, Set *B, Set *S, Set *T, Set *M)
+{
+    *found = 0;
+    if (*go)
+    {
+        if (isElement(*R, pos))
+        {
+            *found = 1;
+        }
+        else if (!isElement(*R, pos))
+        {
+            addCoord(R, pos);
+            *found = 1;
+        }
+        if (isElement(*B, pos))
+        {
+            removeCoord(B, pos);
+            *found = 1;
+        }
+    } else
+    {
+        if (isElement(*B, pos))
+        {
+            *found = 1;
+        }
+        else if (!isElement(*B, pos))
+        {
+            addCoord(B, pos);
+        }
+        if (isElement(*R, pos))
+        {
+            removeCoord(R, pos);
+            *found = 1;
+        }
+    }
+
+    if (*found)
+    {
+        if (!isElement(*S, pos))
+        {
+            addCoord(S, pos);
+            *found = 0;
+        }
+        else if (isElement(*S, pos))
+        {
+            if (isElement(*T, pos))
+            {
+                removeCoord(T, pos);
+                Expand(pos, go, found, R, B, S, T, M);
+            }
+        }
+    }
 
 }
 
-void Expand(Coord pos, int *go, Set *R, Set *B, Set *S, Set *T, Set *M){
-
+void Expand(Coord pos, int *go, int *found, Set *R, Set *B, Set *S, Set *T, Set *M)
+{
+    Coord u, d, k, r;
+    u.x =   pos.x - 1;
+    u.y =   pos.y;
+    d.x =   pos.x + 1;
+    d.y =   pos.y;
+    k.x =   pos.x;
+    k.y =   pos.y - 1;
+    r.x =   pos.x;
+    r.y =   pos.y + 1;
+    Remove(pos, *go, R, B, S, T);
+    if (go)
+    {
+        Replace(u, go, found, R, B, S, T, M);
+    } else
+    {
+        Replace(d, go, found, R, B, S, T, M);
+    }
+    Replace(k, go, found, R, B, S, T, M);
+    Replace(r, go, found, R, B, S, T, M);
+   
 }
 
-void Update(Coord pos, int *go, int* good, Set *R, Set *B, Set *S, Set *T, Set *M){
-
+void Update(Coord pos, int *go, int* good, int *found, Set *R, Set *B, Set *S, Set *T, Set *M){
+    *good = 0;
+    if(!isElement(*S,pos))
+    {
+        addCoord(S,pos);
+        *good = 1;
+    } else if (!!good && isElement(*S,pos) == 1 && isElement(*T,pos) == 0)
+    {
+        addCoord(T,pos);
+        Expand(pos, go, found, R, B, S, T, M);
+        *good = 1;
+    }
 }
 
 /*
@@ -173,9 +256,9 @@ void Update(Coord pos, int *go, int* good, Set *R, Set *B, Set *S, Set *T, Set *
     Return: none
     Example: 
 */ 
-void NextPlayerMove(Coord pos, int* over, int* start, int* go, int* good, int* val, Set *R, Set *B, Set *S, Set *T, Set *M){    
+void NextPlayerMove(Coord pos, int* over, int* start, int* go, int* good, int* found,int* val, Set *R, Set *B, Set *S, Set *T, Set *M){    
     if(!*over){
-        if(*start){
+        if(*start){ 
             if(*go){
                 addCoord(R,pos);
                 addCoord(S,pos);
@@ -186,10 +269,8 @@ void NextPlayerMove(Coord pos, int* over, int* start, int* go, int* good, int* v
                 *good = 1;
             }
         }else{
-            if( (*go && isElement(*R,pos)) || (!*go && isElement(*B,pos))){
-                Update(pos,go,good,R,B,S,T,M);
-                *good = 1;
-            }
+            if( (*go && isElement(*R,pos)) || (!*go && isElement(*B,pos)))
+                Update(pos,go,good,found,R,B,S,T,M);
         }
     }
     if(*start && R->num_coord > 0 && B->num_coord > 0){
@@ -281,7 +362,7 @@ int main(){
             // printf("%d %d %d %d\n",xInput>0 , xInput<size+1 , yInput>0 , yInput<size+1);
             // printf("%d %d %d\n",R.num_coord,B.num_coord,S.num_coord);
             if(xInput>0 && xInput<size+1 && yInput>0 && yInput<size+1){
-                NextPlayerMove(cInput,&over,&start,&go,&good,&val,&R,&B,&S,&T,&M);
+                NextPlayerMove(cInput,&over,&start,&go,&good,&found,&val,&R,&B,&S,&T,&M);
             }
         }
     }
