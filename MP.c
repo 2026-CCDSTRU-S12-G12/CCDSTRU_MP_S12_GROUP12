@@ -1,7 +1,21 @@
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h>
 
 #define MAX_ELEM 9
+
+//ANSI Escape Sequences
+#define CLEAR "\033[2J"
+#define COLOR_RESET "\033[0m"
+#define COLOR_RED "\033[31m"
+#define COLOR_BLUE "\033[34m"
+#define COLOR_PURPLE "\033[35m"
+#define COLOR_SRED "\033[91m"
+#define COLOR_SBLUE "\033[94m"
+#define COLOR_SPURPLE "\033[95m"
+#define COLOR_GREEN_BG "\033[103m"
+
+typedef const char *sprite[5];
 
 typedef struct {
     int x; // x-coordinate
@@ -105,11 +119,11 @@ int isOver(Set R, Set B, int start, int val)
 }
 
 /*
-    Purpose: prints the current board state to the terminal
+    Purpose: prints the current board state (in debug form) to the terminal
     Return: none
     Example: 
 */ 
-void printBoard(int size, Set *R,Set *B, Set *S, Set *T)
+void printBoardDebug(int size, Set *R,Set *B, Set *S, Set *T)
 {
     int i, j;
     Coord temp;
@@ -120,8 +134,8 @@ void printBoard(int size, Set *R,Set *B, Set *S, Set *T)
 
     for (i = 1; i < size + 1; i++){
         for(j = 1; j < size + 1; j++){
-            temp.x = j;
-            temp.y = i;
+            temp.x = i;
+            temp.y = j;
             cR = ' ';
             cB = ' ';
             cS = ' ';
@@ -137,6 +151,68 @@ void printBoard(int size, Set *R,Set *B, Set *S, Set *T)
         }
         if(i < size){
             printf("\n--------------\n");
+        }
+    }
+    printf("\n");
+}
+
+/*
+    Purpose: prints the current board state to the terminal
+    Return: none
+    Example: 
+*/ 
+void printBoard(int size, Set *R,Set *B, Set *S, Set *T, sprite RED, sprite SRED, sprite BLUE, sprite SBLUE, sprite PURPLE, sprite SPURPLE, sprite EMPTY)
+{
+    int i, j, k;
+    int cR[size];
+    int cB[size];
+    int cS[size];
+    Coord temp;
+
+    for (i=0;i<size;i++){
+        temp.x = i+1;
+        for(j=0;j<size;j++){
+            temp.y = j+1;
+            cR[j] = 0;
+            cB[j] = 0;
+            cS[j] = 0;
+            if (isElement(*R, temp)) cR[j] = 1;
+            if (isElement(*B, temp)) cB[j] = 1;
+            if (isElement(*S, temp)) cS[j] = 1;
+        }
+        for(k=0;k<5;k++){
+            for(j=0;j<size;j++){
+                if(cS[j]){
+                    if(cR[j] && cB[j]){
+                        printf(SPURPLE[k]);
+                    }else if(cR[j]){
+                        printf(SRED[k]);
+                    }else if(cB[j]){
+                        printf(SBLUE[k]);
+                    }else{
+                        printf(EMPTY[k]);
+                    }
+                }else{
+                    if(cR[j] && cB[j]){
+                        printf(PURPLE[k]);
+                    }else if(cR[j]){
+                        printf(RED[k]);
+                    }else if(cB[j]){
+                        printf(BLUE[k]);
+                    }else{
+                        printf(EMPTY[k]);
+                    }
+                }
+                if (j < size-1){
+                    printf("|");
+                }
+            }
+            if(k<4){
+                printf("\n");
+            }
+        }
+        if(i < size-1){
+            printf("\n-----------------\n");
         }
     }
     printf("\n");
@@ -250,7 +326,6 @@ void Update(Coord pos, int *go, int *good, int *found, Set *R, Set *B, Set *S, S
 void NextPlayerMove(Coord pos, int *start, int *go, int *good, int *found, int *val, Set *R, Set *B, Set *S, Set *T)
 {   
     int over = isOver(*R, *B, *start, *val);
-
     if (!over){
         if (*start){ 
             if (*go){
@@ -263,9 +338,11 @@ void NextPlayerMove(Coord pos, int *start, int *go, int *good, int *found, int *
                 *good = 1;
             }
         }else{
+            // printf("\nR: %d, B: %d\n", isElement(*R, pos), isElement(*B, pos));
             if ((*go && isElement(*R, pos)) || (!*go && isElement(*B, pos)))
             {
                 Update(pos, go, good, found, R, B, S, T);
+                *good = 1;
             }
         }
     }
@@ -293,8 +370,8 @@ int main(){
     Coord temp;
     for(i=1;i<size+1;i++){
         for(j=1;j<size+1;j++){
-            temp.x = j;
-            temp.y = i;
+            temp.x = i;
+            temp.y = j;
             addCoord(&M,temp);
         }
     }
@@ -322,8 +399,49 @@ int main(){
     Set T = {0};
     Set F;
 
+    //Cell States
+    sprite RED = {COLOR_RED "\\   /" COLOR_RESET,
+                  COLOR_RED " \\ / " COLOR_RESET,
+                  COLOR_RED "  X  " COLOR_RESET,
+                  COLOR_RED " / \\ " COLOR_RESET,
+                  COLOR_RED "/   \\" COLOR_RESET};
+
+    sprite SRED = {COLOR_SRED COLOR_GREEN_BG "\\   /" COLOR_RESET,
+                   COLOR_SRED COLOR_GREEN_BG " \\ / " COLOR_RESET,
+                   COLOR_SRED COLOR_GREEN_BG "  X  " COLOR_RESET,
+                   COLOR_SRED COLOR_GREEN_BG " / \\ " COLOR_RESET,
+                   COLOR_SRED COLOR_GREEN_BG "/   \\" COLOR_RESET};
+
+    sprite BLUE = {COLOR_BLUE " /-\\ " COLOR_RESET,
+                   COLOR_BLUE "|   |" COLOR_RESET,
+                   COLOR_BLUE "|   |" COLOR_RESET,
+                   COLOR_BLUE "|   |" COLOR_RESET,
+                   COLOR_BLUE " \\-/ " COLOR_RESET};
+
+    sprite SBLUE = {COLOR_SBLUE COLOR_GREEN_BG " /-\\ " COLOR_RESET,
+                    COLOR_SBLUE COLOR_GREEN_BG "|   |" COLOR_RESET,
+                    COLOR_SBLUE COLOR_GREEN_BG "|   |" COLOR_RESET,
+                    COLOR_SBLUE COLOR_GREEN_BG "|   |" COLOR_RESET,
+                    COLOR_SBLUE COLOR_GREEN_BG " \\-/ " COLOR_RESET};
+
+    sprite PURPLE = {COLOR_PURPLE " /+ /" COLOR_RESET,
+                     COLOR_PURPLE "| |/ " COLOR_RESET,
+                     COLOR_PURPLE "| K  " COLOR_RESET,
+                     COLOR_PURPLE "| |\\ " COLOR_RESET,
+                     COLOR_PURPLE " \\+ \\" COLOR_RESET};
+
+    sprite SPURPLE = {COLOR_SPURPLE COLOR_GREEN_BG " /+ /" COLOR_RESET,
+                      COLOR_SPURPLE COLOR_GREEN_BG "| |/ " COLOR_RESET,
+                      COLOR_SPURPLE COLOR_GREEN_BG "| K  " COLOR_RESET,
+                      COLOR_SPURPLE COLOR_GREEN_BG "| |\\ " COLOR_RESET,
+                      COLOR_SPURPLE COLOR_GREEN_BG " \\+ \\" COLOR_RESET};
+
+    sprite EMPTY = {"     ","     ","     ","     ","     "};
+
     //Menu Variables
     int Active = 1;
+    //Set DebugMode to 0 before submitting
+    int DebugMode = 0;
     int MenuScreen = 1;
     int InGame = 0;
     char Input = ' ';
@@ -336,21 +454,35 @@ int main(){
             printf("[X] - Exit the Program\n");
             printf("Input: ");
             scanf(" %c",&Input);
-            if (Input == 'S'){
+            if (toupper(Input) == 'S'){
                 MenuScreen = 0;
                 InGame = 1;
-            }else if (Input == 'X'){
+            }else if (toupper(Input) == 'X'){
                 MenuScreen = 0;
                 Active = 0;
             }
         }
         //Temporary UI
         while(InGame){
-            printf("Board State:\n");
-            printBoard(size, &R, &B, &S, &T);
-            printf("Input x: ");
+            if(DebugMode){
+                //Does not clean up previous lines to make debugging easier
+                printf("Good: %d, Go: %d, Start: %d, Found: %d, Val: %d, Over: %d\n", good, go, start, found, val, over);
+                printf("Board State:\n");
+                printBoardDebug(size, &R, &B, &S, &T);
+            }else{
+                //Cleans up previous lines
+                printf(CLEAR);
+                printf("Board State:\n");
+                printBoard(size, &R, &B, &S, &T, RED, SRED, BLUE, SBLUE, PURPLE, SPURPLE, EMPTY);
+            }
+            if(go){
+                printf("Player 1's Turn\n");
+            }else{
+                printf("Player 2's Turn\n");
+            }
+            printf("Input Row: ");
             scanf("%d", &xInput);
-            printf("Input y: ");
+            printf("Input Column: ");
             scanf("%d", &yInput);
             cInput.x = xInput;
             cInput.y = yInput;
