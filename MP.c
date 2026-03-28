@@ -266,11 +266,10 @@ void NextPlayerMove(Coord pos, int *start, int *go, int *good, int *found, int *
             if ((*go && isElement(*R, pos)) || (!*go && isElement(*B, pos)))
             {
                 Update(pos, go, good, found, R, B, S, T);
-                *good = 1;
             }
         }
     }
-    if (*start && R->num_coord > 0 && B->num_coord > 0){
+    if (*start && R->num_coord == 1 && B->num_coord == 1){
         *start = 0;
     }
     //Im not sure if the order the equations appear in matter or not so I'll just give this its own !over if statement
