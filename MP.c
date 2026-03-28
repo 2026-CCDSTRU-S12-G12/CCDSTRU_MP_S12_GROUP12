@@ -15,13 +15,21 @@ typedef struct {
 
 // HELPER FUNCTIONS
 /*
+    Purpose: checks if the given pos is a valid coordinate in set M
+    Return: either (a) 1 if pos is valid (b) 0 if not
+*/
+int isValidPos(Coord pos)
+{
+    return (pos.x >= 1 && pos.x <= 3 && pos.y >= 1 && pos.y <= 3);
+}
+
+/*
     Purpose: removing a coordinate in a set
     Return: none (modifies the set in the parameter indirectly)
-    Example: A = {(1,2), (3,4)} & num_coord = 2, remove (1,2) in Set A, then:
-            A = {(3,4)} and num_coord = 1
+    Example: A = {(1,2), (2,1)} & num_coord = 2, remove (1,2) in Set A, then:
+             A = {(2,1)} and num_coord = 1
 */ 
-void
-removeCoord(Set *A, Coord pos)
+void removeCoord(Set *A, Coord pos)
 {
     int i;
     int n = A->num_coord;
@@ -43,33 +51,29 @@ removeCoord(Set *A, Coord pos)
 /*
     Purpose: adding a coordinate in a set
     Return: none (modifies the set in the parameter indirectly)
-    Example: A = {(1,2), (3,4)} & num_coord = 2, add (5,6) in Set A, then:
-            A = {(1,2), (3,4), (5,6)} and num_coord = 3
+    Example: A = {(1,2), (2,1)} & num_coord = 2, add (3,3) in Set A, then:
+             A = {(1,2), (2,1), (3,3)} and num_coord = 3
 */ 
-void
-addCoord(Set *A, Coord pos)
+void addCoord(Set *A, Coord pos)
 {
     int n = A->num_coord;
 
-    if (n < MAX_ELEM)
+    if (n < MAX_ELEM && !isElement(*A, pos)) // avoids duplicate
     {
         A->coord[n] = pos;
         A->num_coord++;
     }
 }
 
-
-
 /*
     Purpose: checks if a given coordinate exists in a set
     Return: either (a) 1 if found; (b) 0 if not
-    Example: A = {(1,2), (3,4), (5,6)}, see if (3,4) exists in the set, then:
-            this function returns 1
-            see if (7,8) exists in the set, then:
-            this function returns 0
+    Example: A = {(1,2), (2,1), (3,3)}, see if (3,3) exists in the set, then:
+             this function returns 1
+             see if (3,1) exists in the set, then:
+             this function returns 0
 */
-int
-isElement(Set A, Coord pos)
+int isElement(Set A, Coord pos)
 {
     int isFound = 0;
     int i;
@@ -87,24 +91,17 @@ isElement(Set A, Coord pos)
     return isFound;
 }
 
-// very draft only, not tested
-int
-isOver(Set R, Set B, int start, int val)
+// checks if the game is over; returns 1 if over, and 0 if not
+int isOver(Set R, Set B, int start, int val)
 {
-    // getting cardinality of F
-    Set F;
+    int F_size; // cardinality of F
     int i;
     int n = B.num_coord;
 
-    F = R;
+    // since R and B will never share the same positions/coordinates, size of F can be computed as:
+    F_size = MAX_ELEM - (R.num_coord + B.num_coord);
 
-    for (i = 0; i < n; i++)
-    {
-        if (!isElement(F, B.coord[i]))
-            addCoord(&F, B.coord[i]);
-    }
-
-    return (F.num_coord == 3 || val >= 20 || (!start && (R.num_coord > 0 && B.num_coord == 0) || (R.num_coord == 0 && B.num_coord > 0)));
+    return (F_size == 3 || val >= 20 || (!start && ((R.num_coord > 0 && B.num_coord == 0) || (R.num_coord == 0 && B.num_coord > 0))));
 }
 
 /*
@@ -112,31 +109,33 @@ isOver(Set R, Set B, int start, int val)
     Return: none
     Example: 
 */ 
-void printBoard(int size, Set* R,Set *B,Set *S,Set *T){
+void printBoard(int size, Set *R,Set *B, Set *S, Set *T)
+{
     int i, j;
     Coord temp;
     char cR;
     char cB;
     char cS;
     char cT;
-    for(i=1;i<size+1;i++){
-        for(j=1;j<size+1;j++){
+
+    for (i = 1; i < size + 1; i++){
+        for(j = 1; j < size + 1; j++){
             temp.x = j;
             temp.y = i;
             cR = ' ';
             cB = ' ';
             cS = ' ';
             cT = ' ';
-            if(isElement(*R,temp)) cR = 'R';
-            if(isElement(*B,temp)) cB = 'B';
-            if(isElement(*S,temp)) cS = 'S';
-            if(isElement(*T,temp)) cT = 'T';
-            printf("%c%c%c%c",cS,cR,cB,cT);
-            if(j<size){
+            if (isElement(*R, temp)) cR = 'R';
+            if (isElement(*B, temp)) cB = 'B';
+            if (isElement(*S, temp)) cS = 'S';
+            if (isElement(*T, temp)) cT = 'T';
+            printf("%c%c%c%c", cS, cR, cB, cT);
+            if (j < size){
                 printf("|");
             }
         }
-        if(i<size){
+        if(i < size){
             printf("\n--------------\n");
         }
     }
@@ -144,10 +143,9 @@ void printBoard(int size, Set* R,Set *B,Set *S,Set *T){
 }
 
 // MAIN FUNCTIONS 
-void
-Remove(Coord pos, int go, Set *R, Set *B, Set *S, Set *T)
+void Remove(Coord pos, int *go, Set *R, Set *B, Set *S, Set *T)
 {
-    if (go)
+    if (*go)
         removeCoord(R, pos);
     else
         removeCoord(B, pos);
@@ -156,42 +154,35 @@ Remove(Coord pos, int go, Set *R, Set *B, Set *S, Set *T)
     removeCoord(T, pos);
 }
 
-void Expand(Coord pos, int *go, int *found, Set *R, Set *B, Set *S, Set *T, Set *M);
+void Expand(Coord pos, int *go, int *found, Set *R, Set *B, Set *S, Set *T);
 
-void Replace(Coord pos, int *go, int *found, Set *R, Set *B, Set *S, Set *T, Set *M)
+void Replace(Coord pos, int *go, int *found, Set *R, Set *B, Set *S, Set *T)
 {
     *found = 0;
+
     if (*go)
     {
-        if (isElement(*R, pos))
-        {
-            *found = 1;
-        }
-        else if (!isElement(*R, pos))
-        {
-            addCoord(R, pos);
-            *found = 1;
-        }
         if (isElement(*B, pos))
         {
             removeCoord(B, pos);
             *found = 1;
         }
-    } else
-    {
-        if (isElement(*B, pos))
-        {
+        if (isElement(*R, pos))
             *found = 1;
-        }
-        else if (!isElement(*B, pos))
-        {
-            addCoord(B, pos);
-        }
+        else
+            addCoord(R, pos);
+    }
+    else
+    {
         if (isElement(*R, pos))
         {
             removeCoord(R, pos);
             *found = 1;
         }
+        if (isElement(*B, pos))
+            *found = 1;
+        else
+            addCoord(B, pos);
     }
 
     if (*found)
@@ -201,53 +192,53 @@ void Replace(Coord pos, int *go, int *found, Set *R, Set *B, Set *S, Set *T, Set
             addCoord(S, pos);
             *found = 0;
         }
-        else if (isElement(*S, pos))
+        else if (!isElement(*T, pos))
         {
-            if (isElement(*T, pos))
-            {
-                removeCoord(T, pos);
-                Expand(pos, go, found, R, B, S, T, M);
-            }
+            addCoord(T, pos);
+            Expand(pos, go, found, R, B, S, T);
         }
     }
-
 }
 
-void Expand(Coord pos, int *go, int *found, Set *R, Set *B, Set *S, Set *T, Set *M)
+void Expand(Coord pos, int *go, int *found, Set *R, Set *B, Set *S, Set *T)
 {
     Coord u, d, k, r;
-    u.x =   pos.x - 1;
-    u.y =   pos.y;
-    d.x =   pos.x + 1;
-    d.y =   pos.y;
-    k.x =   pos.x;
-    k.y =   pos.y - 1;
-    r.x =   pos.x;
-    r.y =   pos.y + 1;
-    Remove(pos, *go, R, B, S, T);
-    if (go)
-    {
-        Replace(u, go, found, R, B, S, T, M);
-    } else
-    {
-        Replace(d, go, found, R, B, S, T, M);
-    }
-    Replace(k, go, found, R, B, S, T, M);
-    Replace(r, go, found, R, B, S, T, M);
+    u = d = k = r = pos;
+
+    u.x--;
+    d.x++;
+    k.y--;
+    r.y++;
+
+    Remove(pos, go, R, B, S, T);
+
+    if (*go && isValidPos(u))
+        Replace(u, go, found, R, B, S, T);
+
+    if (!*go && isValidPos(d))
+        Replace(d, go, found, R, B, S, T);
+    
+    if (isValidPos(k))
+        Replace(k, go, found, R, B, S, T);
+
+    if (isValidPos(r))
+        Replace(r, go, found, R, B, S, T);
    
 }
 
-void Update(Coord pos, int *go, int* good, int *found, Set *R, Set *B, Set *S, Set *T, Set *M){
+void Update(Coord pos, int *go, int *good, int *found, Set *R, Set *B, Set *S, Set *T)
+{
     *good = 0;
-    if(!isElement(*S,pos))
+
+    if (!isElement(*S, pos))
     {
-        addCoord(S,pos);
+        addCoord(S, pos);
         *good = 1;
-    } else if (!!good && isElement(*S,pos) == 1 && isElement(*T,pos) == 0)
+    }
+    else if (!isElement(*T, pos)) // omitted !*good in the condition
     {
-        addCoord(T,pos);
-        Expand(pos, go, found, R, B, S, T, M);
-        *good = 1;
+        addCoord(T, pos);
+        Expand(pos, go, found, R, B, S, T);
     }
 }
 
@@ -256,31 +247,37 @@ void Update(Coord pos, int *go, int* good, int *found, Set *R, Set *B, Set *S, S
     Return: none
     Example: 
 */ 
-void NextPlayerMove(Coord pos, int* over, int* start, int* go, int* good, int* found,int* val, Set *R, Set *B, Set *S, Set *T, Set *M){    
-    if(!*over){
-        if(*start){ 
-            if(*go){
-                addCoord(R,pos);
-                addCoord(S,pos);
+void NextPlayerMove(Coord pos, int *start, int *go, int *good, int *found, int *val, Set *R, Set *B, Set *S, Set *T)
+{   
+    int over = isOver(*R, *B, *start, *val);
+
+    if (!over){
+        if (*start){ 
+            if (*go){
+                addCoord(R, pos);
+                addCoord(S, pos);
                 *good = 1;
             }else{
-                addCoord(B,pos);
-                addCoord(S,pos);
+                addCoord(B, pos);
+                addCoord(S, pos);
                 *good = 1;
             }
         }else{
-            if( (*go && isElement(*R,pos)) || (!*go && isElement(*B,pos)))
-                Update(pos,go,good,found,R,B,S,T,M);
+            if ((*go && isElement(*R, pos)) || (!*go && isElement(*B, pos)))
+            {
+                Update(pos, go, good, found, R, B, S, T);
+                *good = 1;
+            }
         }
     }
-    if(*start && R->num_coord > 0 && B->num_coord > 0){
+    if (*start && R->num_coord > 0 && B->num_coord > 0){
         *start = 0;
     }
     //Im not sure if the order the equations appear in matter or not so I'll just give this its own !over if statement
-    if(!*over && *good){
+    if (!over && *good){
         *good = !*good;
         *go = !*go;
-        *val++;
+        (*val)++;
     }
 }
 
@@ -340,10 +337,10 @@ int main(){
             printf("[X] - Exit the Program\n");
             printf("Input: ");
             scanf(" %c",&Input);
-            if(Input == 'S'){
+            if (Input == 'S'){
                 MenuScreen = 0;
                 InGame = 1;
-            }else if(Input == 'X'){
+            }else if (Input == 'X'){
                 MenuScreen = 0;
                 Active = 0;
             }
@@ -351,18 +348,18 @@ int main(){
         //Temporary UI
         while(InGame){
             printf("Board State:\n");
-            printBoard(size,&R,&B,&S,&T);
+            printBoard(size, &R, &B, &S, &T);
             printf("Input x: ");
-            scanf("%d",&xInput);
+            scanf("%d", &xInput);
             printf("Input y: ");
-            scanf("%d",&yInput);
+            scanf("%d", &yInput);
             cInput.x = xInput;
             cInput.y = yInput;
             // printf("%d %d\n",xInput,yInput);
             // printf("%d %d %d %d\n",xInput>0 , xInput<size+1 , yInput>0 , yInput<size+1);
             // printf("%d %d %d\n",R.num_coord,B.num_coord,S.num_coord);
-            if(xInput>0 && xInput<size+1 && yInput>0 && yInput<size+1){
-                NextPlayerMove(cInput,&over,&start,&go,&good,&found,&val,&R,&B,&S,&T,&M);
+            if (isValidPos(cInput)){
+                NextPlayerMove(cInput, &start, &go, &good, &found, &val, &R, &B, &S, &T);
             }
         }
     }
