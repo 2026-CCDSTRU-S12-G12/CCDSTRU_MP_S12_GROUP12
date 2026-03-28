@@ -24,6 +24,32 @@ int isValidPos(Coord pos)
 }
 
 /*
+    Purpose: checks if a given coordinate exists in a set
+    Return: either (a) 1 if found; (b) 0 if not
+    Example: A = {(1,2), (2,1), (3,3)}, see if (3,3) exists in the set, then:
+             this function returns 1
+             see if (3,1) exists in the set, then:
+             this function returns 0
+*/
+int isElement(Set A, Coord pos)
+{
+    int isFound = 0;
+    int i;
+    int n = A.num_coord;
+
+    i = 0;
+    while (i < n && !isFound)
+    {
+        if (A.coord[i].x == pos.x && A.coord[i].y == pos.y)
+            isFound = 1;
+
+        i++;
+    }
+
+    return isFound;
+}
+
+/*
     Purpose: removing a coordinate in a set
     Return: none (modifies the set in the parameter indirectly)
     Example: A = {(1,2), (2,1)} & num_coord = 2, remove (1,2) in Set A, then:
@@ -63,32 +89,6 @@ void addCoord(Set *A, Coord pos)
         A->coord[n] = pos;
         A->num_coord++;
     }
-}
-
-/*
-    Purpose: checks if a given coordinate exists in a set
-    Return: either (a) 1 if found; (b) 0 if not
-    Example: A = {(1,2), (2,1), (3,3)}, see if (3,3) exists in the set, then:
-             this function returns 1
-             see if (3,1) exists in the set, then:
-             this function returns 0
-*/
-int isElement(Set A, Coord pos)
-{
-    int isFound = 0;
-    int i;
-    int n = A.num_coord;
-
-    i = 0;
-    while (i < n && !isFound)
-    {
-        if (A.coord[i].x == pos.x && A.coord[i].y == pos.y)
-            isFound = 1;
-
-        i++;
-    }
-
-    return isFound;
 }
 
 // checks if the game is over; returns 1 if over, and 0 if not
