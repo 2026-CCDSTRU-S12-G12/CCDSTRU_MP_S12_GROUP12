@@ -491,6 +491,42 @@ int main(){
             // printf("%d %d %d\n",R.num_coord,B.num_coord,S.num_coord);
             if (isValidPos(cInput)){
                 NextPlayerMove(cInput, &start, &go, &good, &found, &val, &R, &B, &S, &T);
+                
+                 // Check for game over after move
+                over = isOver(R, B, start, val);
+                if (over) {
+                    int F_size = MAX_ELEM - (R.num_coord + B.num_coord);
+                    if (DebugMode) {
+                        printf("Board State:\n");
+                        printBoardDebug(size, &R, &B, &S, &T);
+                    } else {
+                        printf(CLEAR);
+                        printf("Board State:\n");
+                        printBoard(size, &R, &B, &S, &T, RED, SRED, BLUE, SBLUE, PURPLE, SPURPLE, EMPTY);
+                    }
+                    if (F_size == 3) {
+                        // Check who has the most figures when 3 spaces left
+                        if (R.num_coord > B.num_coord) {
+                            printf("Game Over! Player 1 (Red) wins with more figures!\n");
+                        } else if (B.num_coord > R.num_coord) {
+                            printf("Game Over! Player 2 (Blue) wins with more figures!\n");
+                        } else {
+                            printf("Game Over! It's a draw - equal figures!\n");
+                        }
+                    } else if (val >= 20) {
+                        printf("Game Over! Move limit reached - it's a draw!\n");
+                    } else {
+                        // Elimination condition
+                        if (R.num_coord > 0 && B.num_coord == 0) {
+                            printf("Game Over! Player 1 (Red) wins by elimination!\n");
+                        } else if (B.num_coord > 0 && R.num_coord == 0) {
+                            printf("Game Over! Player 2 (Blue) wins by elimination!\n");
+                        } else {
+                            printf("Game Over! Unexpected condition.\n");
+                        }
+                    }
+                    InGame = 0;  // Exit the game loop
+                }
             }
         }
     }
