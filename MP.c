@@ -471,7 +471,10 @@ int main()
 
     // APPLICABLE SETS
     // Set C
-    int C[3] = {1,2,3};
+    int C[BOARD_SIZE] = {0};
+    for(i=1;i<BOARD_SIZE+1;i++){
+        C[i] = i;
+    }
     // Set M
     int size = sizeof(C)/sizeof(int);
     Set M = {0};
