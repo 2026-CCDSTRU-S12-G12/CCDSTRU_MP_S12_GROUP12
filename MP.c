@@ -13,7 +13,7 @@
 #define COLOR_SRED "\033[91m"
 #define COLOR_SBLUE "\033[94m"
 #define COLOR_SPURPLE "\033[95m"
-#define COLOR_GREEN_BG "\033[103m"
+#define COLOR_YELLOW_BG "\033[103m"
 
 typedef const char *sprite[5];
 
@@ -105,12 +105,13 @@ void addCoord(Set *A, Coord pos)
     }
 }
 
-// checks if the game is over; returns 1 if over, and 0 if not
+/*
+    Purpose: checks if the game is over
+    Return: 1 if over, and 0 if not
+*/ 
 int isOver(Set R, Set B, int start, int val)
 {
     int F_size; // cardinality of F
-    int i;
-    int n = B.num_coord;
 
     // since R and B will never share the same positions/coordinates, size of F can be computed as:
     F_size = MAX_ELEM - (R.num_coord + B.num_coord);
@@ -121,7 +122,6 @@ int isOver(Set R, Set B, int start, int val)
 /*
     Purpose: prints the current board state (in debug form) to the terminal
     Return: none
-    Example: 
 */ 
 void printBoardDebug(int size, Set *R,Set *B, Set *S, Set *T)
 {
@@ -159,7 +159,6 @@ void printBoardDebug(int size, Set *R,Set *B, Set *S, Set *T)
 /*
     Purpose: prints the current board state to the terminal
     Return: none
-    Example: 
 */ 
 void printBoard(int size, Set *R,Set *B, Set *S, Set *T, sprite RED, sprite SRED, sprite BLUE, sprite SBLUE, sprite PURPLE, sprite SPURPLE, sprite EMPTY)
 {
@@ -168,7 +167,7 @@ void printBoard(int size, Set *R,Set *B, Set *S, Set *T, sprite RED, sprite SRED
     int cB[size];
     int cS[size];
     Coord temp;
-
+    printf(COLOR_BLUE"\n-----------------\n"COLOR_RESET);
     for (i=0;i<size;i++){
         temp.x = i+1;
         for(j=0;j<size;j++){
@@ -215,10 +214,15 @@ void printBoard(int size, Set *R,Set *B, Set *S, Set *T, sprite RED, sprite SRED
             printf("\n-----------------\n");
         }
     }
+    printf(COLOR_RED"\n-----------------\n"COLOR_RESET);
     printf("\n");
 }
 
 // MAIN FUNCTIONS 
+/*
+    Purpose: Remove's a player's figure after expand was run on it
+    Return: none
+*/ 
 void Remove(Coord pos, int *go, Set *R, Set *B, Set *S, Set *T)
 {
     if (*go)
@@ -230,8 +234,13 @@ void Remove(Coord pos, int *go, Set *R, Set *B, Set *S, Set *T)
     removeCoord(T, pos);
 }
 
+//Skeleton declared for Replace to read
 void Expand(Coord pos, int *go, int *found, Set *R, Set *B, Set *S, Set *T);
 
+/*
+    Purpose: Replaces a cell with the current player's figure
+    Return: none
+*/ 
 void Replace(Coord pos, int *go, int *found, Set *R, Set *B, Set *S, Set *T)
 {
     *found = 0;
@@ -276,6 +285,10 @@ void Replace(Coord pos, int *go, int *found, Set *R, Set *B, Set *S, Set *T)
     }
 }
 
+/*
+    Purpose: Runs Replace on 3 adjacent positions
+    Return: none
+*/ 
 void Expand(Coord pos, int *go, int *found, Set *R, Set *B, Set *S, Set *T)
 {
     Coord u, d, k, r;
@@ -302,6 +315,10 @@ void Expand(Coord pos, int *go, int *found, Set *R, Set *B, Set *S, Set *T)
    
 }
 
+/*
+    Purpose: Updates a player's figure, either marking it in set S or running Expand on it
+    Return: none
+*/ 
 void Update(Coord pos, int *go, int *good, int *found, Set *R, Set *B, Set *S, Set *T)
 {
     *good = 0;
@@ -321,7 +338,6 @@ void Update(Coord pos, int *go, int *good, int *found, Set *R, Set *B, Set *S, S
 /*
     Purpose: Parses the next player's move
     Return: none
-    Example: 
 */ 
 void NextPlayerMove(Coord pos, int *start, int *go, int *good, int *found, int *val, Set *R, Set *B, Set *S, Set *T)
 {   
@@ -357,6 +373,39 @@ void NextPlayerMove(Coord pos, int *start, int *go, int *good, int *found, int *
     }
 }
 
+/*
+    Purpose: Checks which player won the game
+    Return: None; Places the result indirectly in the result string
+*/ 
+void GameOver(Set *R, Set *B, char *result){
+    if (R->num_coord > B->num_coord) {
+        strcpy(result,"R wins");
+    } else if (B->num_coord > R->num_coord) {
+        strcpy(result,"B wins");
+    } else {
+        strcpy(result,"draw");
+    }
+}
+
+/*
+    Purpose: Resets all the values for a new game
+    Return: None
+*/ 
+void InitializeValues(Set *R, Set *B, Set *S, Set *T, int* good, int* go, int* start, int* found, int* val, char* result, int* over, int* V){
+    Set Empty = {0};
+    *R = Empty;
+    *B = Empty;
+    *S = Empty;
+    *T = Empty;
+
+    *good = V[0];
+    *go = V[1];
+    *start = V[1];
+    *found = V[0];
+    *val = 0;
+    strcpy(result,"");
+    *over = 0;
+}
 
 int main(){
     int i, j;
@@ -375,8 +424,9 @@ int main(){
             addCoord(&M,temp);
         }
     }
-    //Set N
-    int N[17] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16};
+    //Set N, Unused
+    // int N[17] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16};
+    
     //Set V
     //V[0] = False/0
     //V[1] = True/1
@@ -389,6 +439,7 @@ int main(){
     int start = V[1];
     int found = V[0];
     int val = 0;
+    char result[10] = "";
 
     //Student Initialized
     int over = 0;
@@ -397,7 +448,6 @@ int main(){
     Set B = {0};
     Set S = {0};
     Set T = {0};
-    Set F;
 
     //Cell States
     sprite RED = {COLOR_RED "\\   /" COLOR_RESET,
@@ -406,11 +456,11 @@ int main(){
                   COLOR_RED " / \\ " COLOR_RESET,
                   COLOR_RED "/   \\" COLOR_RESET};
 
-    sprite SRED = {COLOR_SRED COLOR_GREEN_BG "\\   /" COLOR_RESET,
-                   COLOR_SRED COLOR_GREEN_BG " \\ / " COLOR_RESET,
-                   COLOR_SRED COLOR_GREEN_BG "  X  " COLOR_RESET,
-                   COLOR_SRED COLOR_GREEN_BG " / \\ " COLOR_RESET,
-                   COLOR_SRED COLOR_GREEN_BG "/   \\" COLOR_RESET};
+    sprite SRED = {COLOR_SRED COLOR_YELLOW_BG "\\   /" COLOR_RESET,
+                   COLOR_SRED COLOR_YELLOW_BG " \\ / " COLOR_RESET,
+                   COLOR_SRED COLOR_YELLOW_BG "  X  " COLOR_RESET,
+                   COLOR_SRED COLOR_YELLOW_BG " / \\ " COLOR_RESET,
+                   COLOR_SRED COLOR_YELLOW_BG "/   \\" COLOR_RESET};
 
     sprite BLUE = {COLOR_BLUE " /-\\ " COLOR_RESET,
                    COLOR_BLUE "|   |" COLOR_RESET,
@@ -418,11 +468,11 @@ int main(){
                    COLOR_BLUE "|   |" COLOR_RESET,
                    COLOR_BLUE " \\-/ " COLOR_RESET};
 
-    sprite SBLUE = {COLOR_SBLUE COLOR_GREEN_BG " /-\\ " COLOR_RESET,
-                    COLOR_SBLUE COLOR_GREEN_BG "|   |" COLOR_RESET,
-                    COLOR_SBLUE COLOR_GREEN_BG "|   |" COLOR_RESET,
-                    COLOR_SBLUE COLOR_GREEN_BG "|   |" COLOR_RESET,
-                    COLOR_SBLUE COLOR_GREEN_BG " \\-/ " COLOR_RESET};
+    sprite SBLUE = {COLOR_SBLUE COLOR_YELLOW_BG " /-\\ " COLOR_RESET,
+                    COLOR_SBLUE COLOR_YELLOW_BG "|   |" COLOR_RESET,
+                    COLOR_SBLUE COLOR_YELLOW_BG "|   |" COLOR_RESET,
+                    COLOR_SBLUE COLOR_YELLOW_BG "|   |" COLOR_RESET,
+                    COLOR_SBLUE COLOR_YELLOW_BG " \\-/ " COLOR_RESET};
 
     sprite PURPLE = {COLOR_PURPLE " /+ /" COLOR_RESET,
                      COLOR_PURPLE "| |/ " COLOR_RESET,
@@ -430,11 +480,11 @@ int main(){
                      COLOR_PURPLE "| |\\ " COLOR_RESET,
                      COLOR_PURPLE " \\+ \\" COLOR_RESET};
 
-    sprite SPURPLE = {COLOR_SPURPLE COLOR_GREEN_BG " /+ /" COLOR_RESET,
-                      COLOR_SPURPLE COLOR_GREEN_BG "| |/ " COLOR_RESET,
-                      COLOR_SPURPLE COLOR_GREEN_BG "| K  " COLOR_RESET,
-                      COLOR_SPURPLE COLOR_GREEN_BG "| |\\ " COLOR_RESET,
-                      COLOR_SPURPLE COLOR_GREEN_BG " \\+ \\" COLOR_RESET};
+    sprite SPURPLE = {COLOR_SPURPLE COLOR_YELLOW_BG " /+ /" COLOR_RESET,
+                      COLOR_SPURPLE COLOR_YELLOW_BG "| |/ " COLOR_RESET,
+                      COLOR_SPURPLE COLOR_YELLOW_BG "| K  " COLOR_RESET,
+                      COLOR_SPURPLE COLOR_YELLOW_BG "| |\\ " COLOR_RESET,
+                      COLOR_SPURPLE COLOR_YELLOW_BG " \\+ \\" COLOR_RESET};
 
     sprite EMPTY = {"     ","     ","     ","     ","     "};
 
@@ -446,10 +496,19 @@ int main(){
     int InGame = 0;
     char Input = ' ';
     int xInput = 0, yInput = 0;
+    char waitInput = ' ';
+    int invalidInputMsg = 0;
+    int oldVal = 0;
+    int RWins = 0;
+    int BWins = 0;
+    int Draws = 0;
     Coord cInput;
     while(Active){
         while(MenuScreen){
-            printf("Welcome to the Game! {Title Screen in Progress}\n");
+            printf("Welcome to " COLOR_SRED "RED" COLOR_RESET " vs " COLOR_SBLUE "BLUE" COLOR_RESET "!\n");
+            if(RWins || BWins || Draws){
+                printf("Win Tally\n"COLOR_SRED"RED: %d"COLOR_RESET"\n"COLOR_SBLUE"BLUE: %d"COLOR_RESET"\n"COLOR_SPURPLE"DRAWS: %d"COLOR_RESET"\n",RWins,BWins,Draws);
+            }
             printf("[S] - Start a Match\n");
             printf("[X] - Exit the Program\n");
             printf("Input: ");
@@ -457,6 +516,14 @@ int main(){
             if (toupper(Input) == 'S'){
                 MenuScreen = 0;
                 InGame = 1;
+                InitializeValues(&R,&B,&S,&T,&good,&go,&start,&found,&val,result,&over,V);
+            }else if (toupper(Input) == 'D'){
+                DebugMode = !DebugMode;
+                if(DebugMode){
+                    printf(COLOR_PURPLE "Debug Mode On" COLOR_RESET "\n");
+                }else{
+                    printf(COLOR_PURPLE "Debug Mode Off" COLOR_RESET "\n");
+                }
             }else if (toupper(Input) == 'X'){
                 MenuScreen = 0;
                 Active = 0;
@@ -476,9 +543,21 @@ int main(){
                 printBoard(size, &R, &B, &S, &T, RED, SRED, BLUE, SBLUE, PURPLE, SPURPLE, EMPTY);
             }
             if(go){
-                printf("Player 1's Turn\n");
+                printf(COLOR_SRED "RED" COLOR_RESET " Player's Turn\n");
             }else{
-                printf("Player 2's Turn\n");
+                printf(COLOR_SBLUE "BLUE" COLOR_RESET " Player's Turn\n");
+            }
+            if(invalidInputMsg){
+                if(invalidInputMsg == 1){
+                    printf("Invalid Position, (%d,%d).\nPlease enter numbers between 1 and %d.\n",xInput,yInput,size);
+                }else if(invalidInputMsg == 2){
+                    if(go){
+                        printf("Invalid Choice, (%d,%d).\nPlease enter a position " COLOR_SRED "YOU" COLOR_RESET " control.\n",xInput,yInput);
+                    }else{
+                        printf("Invalid Choice, (%d,%d).\nPlease enter a position " COLOR_SBLUE "YOU" COLOR_RESET " control.\n",xInput,yInput);
+                    }
+                }
+                invalidInputMsg = 0;
             }
             printf("Input Row: ");
             scanf("%d", &xInput);
@@ -490,43 +569,42 @@ int main(){
             // printf("%d %d %d %d\n",xInput>0 , xInput<size+1 , yInput>0 , yInput<size+1);
             // printf("%d %d %d\n",R.num_coord,B.num_coord,S.num_coord);
             if (isValidPos(cInput)){
+                oldVal = val;
                 NextPlayerMove(cInput, &start, &go, &good, &found, &val, &R, &B, &S, &T);
-                
-                 // Check for game over after move
-                over = isOver(R, B, start, val);
-                if (over) {
-                    int F_size = MAX_ELEM - (R.num_coord + B.num_coord);
-                    if (DebugMode) {
-                        printf("Board State:\n");
-                        printBoardDebug(size, &R, &B, &S, &T);
-                    } else {
-                        printf(CLEAR);
-                        printf("Board State:\n");
-                        printBoard(size, &R, &B, &S, &T, RED, SRED, BLUE, SBLUE, PURPLE, SPURPLE, EMPTY);
-                    }
-                    if (F_size == 3) {
-                        // Check who has the most figures when 3 spaces left
-                        if (R.num_coord > B.num_coord) {
-                            printf("Game Over! Player 1 (Red) wins with more figures!\n");
-                        } else if (B.num_coord > R.num_coord) {
-                            printf("Game Over! Player 2 (Blue) wins with more figures!\n");
-                        } else {
-                            printf("Game Over! It's a draw - equal figures!\n");
-                        }
-                    } else if (val >= 20) {
-                        printf("Game Over! Move limit reached - it's a draw!\n");
-                    } else {
-                        // Elimination condition
-                        if (R.num_coord > 0 && B.num_coord == 0) {
-                            printf("Game Over! Player 1 (Red) wins by elimination!\n");
-                        } else if (B.num_coord > 0 && R.num_coord == 0) {
-                            printf("Game Over! Player 2 (Blue) wins by elimination!\n");
-                        } else {
-                            printf("Game Over! Unexpected condition.\n");
-                        }
-                    }
-                    InGame = 0;  // Exit the game loop
+                //If the turn counter does not increment, an existing position was chosen but it was invalid for the current player to use.
+                if(val == oldVal){
+                    invalidInputMsg = 2;
                 }
+            }else{
+                invalidInputMsg = 1;
+            }
+             // Check for game over after move
+            over = isOver(R, B, start, val);
+            if (over) {
+                //Show the board one last time
+                if (DebugMode) {
+                    printf("Board State:\n");
+                    printBoardDebug(size, &R, &B, &S, &T);
+                } else {
+                    printf(CLEAR);
+                    printf("Board State:\n");
+                    printBoard(size, &R, &B, &S, &T, RED, SRED, BLUE, SBLUE, PURPLE, SPURPLE, EMPTY);
+                }
+                GameOver(&R,&B,result);
+                if (!strcmp(result,"R wins")) {
+                    printf("Game Over! " COLOR_SRED "Player 1" COLOR_RESET " wins with more figures!\n");
+                    RWins++;
+                }else if(!strcmp(result,"B wins")){
+                    printf("Game Over! " COLOR_SBLUE "Player 2" COLOR_RESET " wins with more figures!\n");
+                    BWins++;
+                }else{
+                    printf("Game Over! It's a " COLOR_SPURPLE "Draw!" COLOR_RESET " - equal figures!\n");
+                    Draws++;
+                }
+                printf("Enter anything to return to Menu: ");
+                scanf(" %c", &waitInput);
+                InGame = 0;  // Exit the game loop
+                MenuScreen = 1;
             }
         }
     }
