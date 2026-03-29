@@ -576,6 +576,7 @@ int main()
             }
 
             printf("[S] - Start a Match\n");
+            printf("[H] - How to Play\n");
             printf("[X] - Exit the Program\n");
             printf("Input: ");
             scanf(" %c",&Input);
@@ -585,6 +586,45 @@ int main()
                 MenuScreen = 0;
                 InGame = 1;
                 InitializeValues(&R,&B,&S,&T,&good,&go,&start,&found,&val,result,&over,V);
+            }
+            else if (toupper(Input) == 'H')
+            {
+                printf(CLEAR);
+                printf(COLOR_PURPLE "\n===========================================================\n" COLOR_RESET);
+                printf(COLOR_PURPLE "||" COLOR_RESET "             " COLOR_SRED COLOR_YELLOW_BG " HOW TO PLAY: RED VS BLUE " COLOR_RESET "              " COLOR_PURPLE "  ||\n" COLOR_RESET);
+                printf(COLOR_PURPLE "===========================================================\n\n" COLOR_RESET);
+
+                printf(COLOR_SPURPLE "GOAL\n" COLOR_RESET);
+                printf("Dominate the 3x3 grid! The player with the most territory\n");
+                printf("when the game ends is the winner.\n\n");
+
+                printf(COLOR_SPURPLE "RULES\n" COLOR_RESET);
+                printf("1. On Turn 1, players pick any space to drop\n");
+                printf("   their first " COLOR_SRED COLOR_YELLOW_BG " CHARGED " COLOR_RESET " piece.\n");
+                printf("2. On all following turns, you MUST choose\n");
+                printf("   a coordinate you " COLOR_SPURPLE "ALREADY OWN" COLOR_RESET ".\n");
+                printf("   - Choosing a " COLOR_BLUE "Normal" COLOR_RESET " piece upgrades it to " COLOR_SBLUE COLOR_YELLOW_BG " Charged " COLOR_RESET ".\n");
+                printf("   - Choosing a " COLOR_SRED COLOR_YELLOW_BG " Charged " COLOR_RESET " piece causes it to " COLOR_SRED "EXPAND!" COLOR_RESET "\n\n");
+
+                printf(COLOR_SPURPLE "THE TWIST\n" COLOR_RESET);
+                printf("When a Charged piece expands, it shoots into adjacent cells:\n");
+                printf(" > " COLOR_SRED "RED " COLOR_RESET "pieces expand strictly " COLOR_SRED "UP, LEFT, and RIGHT." COLOR_RESET "\n");
+                printf(" > " COLOR_SBLUE "BLUE " COLOR_RESET "pieces expand strictly " COLOR_SBLUE "DOWN, LEFT, and RIGHT." COLOR_RESET "\n\n");
+
+                printf(" - Expanding into an empty space claims it as a Normal piece.\n");
+                printf(" - Expanding into an enemy captures it as a Charged piece.\n");
+                printf(" - Expanding into a Charged piece triggers a " COLOR_SRED "CHAIN REACTION!" COLOR_RESET "\n\n");
+
+                printf(COLOR_SPURPLE "GAME OVER CONDITIONS\n" COLOR_RESET);
+                printf("The battle ends immediately if:\n");
+                printf(" 1. There are exactly 3 empty spaces left on the board.\n");
+                printf(" 2. 20 total turns have passed.\n");
+                printf(" 3. One player is completely wiped off the board.\n\n");
+
+                printf(COLOR_PURPLE "===========================================================\n" COLOR_RESET);
+                printf("Enter anything to return to Menu: ");
+                scanf(" %c", &waitInput);
+                printf(CLEAR);
             }
             else if (toupper(Input) == 'D')
             {
